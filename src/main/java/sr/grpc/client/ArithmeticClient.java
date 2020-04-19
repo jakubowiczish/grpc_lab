@@ -45,217 +45,190 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ArithmeticClient {
-	private static final Logger logger = Logger.getLogger(ArithmeticClient.class.getName());
+    private static final Logger logger = Logger.getLogger(ArithmeticClient.class.getName());
 
-	private final ManagedChannel channel;
-	private final CalculatorGrpc.CalculatorBlockingStub calcBlockingStub;
-	private final AdvancedCalculatorGrpc.AdvancedCalculatorBlockingStub advCalcBlockingStub;
-	private final CalculatorGrpc.CalculatorStub calcNonBlockingStub;
+    private final ManagedChannel channel;
+    private final CalculatorGrpc.CalculatorBlockingStub calcBlockingStub;
+    private final AdvancedCalculatorGrpc.AdvancedCalculatorBlockingStub advCalcBlockingStub;
+    private final CalculatorGrpc.CalculatorStub calcNonBlockingStub;
 
-	private final StreamTesterGrpc.StreamTesterBlockingStub streamTesterBlockingStub;
-	private final StreamTesterGrpc.StreamTesterStub streamTesterNonBlockingStub;
-
-
-	/** Construct client connecting to HelloWorld server at {@code host:port}. */
-	public ArithmeticClient(String host, int port)
-	{
-		channel = ManagedChannelBuilder.forAddress(host, port)
-				// Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid needing certificates.
-				.usePlaintext(/*true*/)
-				.build();
-
-		calcBlockingStub = CalculatorGrpc.newBlockingStub(channel);
-
-		advCalcBlockingStub = AdvancedCalculatorGrpc.newBlockingStub(channel);
-
-		streamTesterBlockingStub = StreamTesterGrpc.newBlockingStub(channel);
-		streamTesterNonBlockingStub = StreamTesterGrpc.newStub(channel);
-
-		calcNonBlockingStub = CalculatorGrpc.newStub(channel);
-	}
-
-	public static void main(String[] args) throws Exception
-	{
-		ArithmeticClient client = new ArithmeticClient("localhost", 50051);
-		client.test();
-	}
-
-	public void shutdown() throws InterruptedException {
-		channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-	}
+    private final StreamTesterGrpc.StreamTesterBlockingStub streamTesterBlockingStub;
+    private final StreamTesterGrpc.StreamTesterStub streamTesterNonBlockingStub;
 
 
-	public void test() throws InterruptedException
-	{
-		try {
-			String line = null;
-			java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
-			do
-			{
-				try
-				{
-					System.out.print("==> ");
-					System.out.flush();
-					line = in.readLine();
-					if (line == null)
-					{
-						break;
-					}
-					if(line.equals("add"))
-					{
-						ArithmeticOpArguments request = ArithmeticOpArguments.newBuilder().setArg1(44).setArg2(55).build();
-						ArithmeticOpResult result = calcBlockingStub.add(request);
-						System.out.println(result.getRes());
-					} 
-					if(line.equals("add-deadline1"))
-					{
-						try {
-							ArithmeticOpArguments request = ArithmeticOpArguments.newBuilder().setArg1(44).setArg2(55).build();
-							ArithmeticOpResult result = calcBlockingStub.withDeadlineAfter(100, TimeUnit.MILLISECONDS).add(request);
-							System.out.println(result.getRes());
-						}
-						catch(io.grpc.StatusRuntimeException e) {
-							System.out.println("DEADLINE EXCEEDED");
-						}
-					} 
-					if(line.equals("add-deadline2"))
-					{
-						try {
-							ArithmeticOpArguments request = ArithmeticOpArguments.newBuilder().setArg1(4444).setArg2(5555).build();
-							ArithmeticOpResult result = calcBlockingStub.withDeadlineAfter(100, TimeUnit.MILLISECONDS).add(request);
-							System.out.println(result.getRes());
-						}
-						catch(io.grpc.StatusRuntimeException e) {
-							System.out.println("DEADLINE EXCEEDED");
-						}
-					} 
-					else if(line.equals("complex-sum"))
-					{
-						ComplexArithmeticOpArguments request = ComplexArithmeticOpArguments.newBuilder()
-								.setOptype(OperationType.SUM).addAllArgs(Arrays.asList(4.0, 5.0, 8.5))
-								.build();
-						ComplexArithmeticOpResult result = advCalcBlockingStub.complexOperation(request);
-						System.out.println(result.getRes());
-					}
-					else if(line.equals("complex-avg"))
-					{
-						ComplexArithmeticOpArguments request = ComplexArithmeticOpArguments.newBuilder()
-								.setOptype(OperationType.AVG).addAllArgs(Arrays.asList(4.0, 5.0, 8.5))
-								.build();
-						ComplexArithmeticOpResult result = advCalcBlockingStub.complexOperation(request);
-						System.out.println(result.getRes());
-					}
-					if(line.equals("async-add"))
-					{
-						ArithmeticOpArguments request = ArithmeticOpArguments.newBuilder().setArg1(4444).setArg2(5555).build();
-						StreamObserver<ArithmeticOpResult> responseObserver = new StreamObserver<ArithmeticOpResult>()
-						{
-							@Override
-							public void onError(Throwable t)
-							{
-								System.out.println("gRPC ERROR");
-							}
+    /**
+     * Construct client connecting to HelloWorld server at {@code host:port}.
+     */
+    public ArithmeticClient(String host, int port) {
+        channel = ManagedChannelBuilder.forAddress(host, port)
+                // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid needing certificates.
+                .usePlaintext(/*true*/)
+                .build();
 
-							@Override
-							public void onCompleted() 
-							{
-							}
+        calcBlockingStub = CalculatorGrpc.newBlockingStub(channel);
 
-							@Override
-							public void onNext(ArithmeticOpResult res) {
-								System.out.println(res.getRes() + " (async)");
-							}
-						};
+        advCalcBlockingStub = AdvancedCalculatorGrpc.newBlockingStub(channel);
 
-						calcNonBlockingStub.add(request, responseObserver);							
-					} 
+        streamTesterBlockingStub = StreamTesterGrpc.newBlockingStub(channel);
+        streamTesterNonBlockingStub = StreamTesterGrpc.newStub(channel);
 
-					else if(line.equals("getprime"))
-					{
-						runGeneratePrimeNumbers();
-					}
-					else if(line.equals("countprime"))
-					{
-						runCountPrimeNumbers();
-					}
-				}
-				catch (java.io.IOException ex)
-				{
-					System.err.println(ex);
-				}
-			}
-			while (!line.equals("x"));
-		} finally {
-			shutdown();
-		}
+        calcNonBlockingStub = CalculatorGrpc.newStub(channel);
+    }
 
-	}
-	public void runGeneratePrimeNumbers()
-	{
-		Task request = Task.newBuilder().setMax(15).build();
-		Iterator<Number> numbers;
-		try {
-			numbers = streamTesterBlockingStub.generatePrimeNumbers(request);
-			while(numbers.hasNext())
-			{
-				//wypisuje siê z odstêpami czasowymi, wiêc strumieniowanie DZIA£A
-				Number num = numbers.next();
-				System.out.println("Number: " + num.getValue());
-			}
-		} catch (StatusRuntimeException ex) {
-			logger.log(Level.WARNING, "RPC failed: {0}", ex.getStatus());
-			return;
-		}
-	}
+    public static void main(String[] args) throws Exception {
+        ArithmeticClient client = new ArithmeticClient("localhost", 50051);
+        client.test();
+    }
 
-	public void runCountPrimeNumbers()
-	{
-		StreamObserver<Report> responseObserver = new StreamObserver<Report>() 
-		{
-			int count = -1;
-			@Override
-			public void onNext(Report result) 
-			{
-				//tylko jeden wynik
-				count = result.getCount();
-			}
-
-			@Override
-			public void onError(Throwable t)
-			{
-				System.out.println("RPC ERROR");
-			}
-
-			@Override
-			public void onCompleted() 
-			{
-				System.out.println("Result received: found " + count + " prime numbers");
-			}
-		};
-		StreamObserver<Number> requestObserver = streamTesterNonBlockingStub.countPrimeNumbers(responseObserver);
-		try {
-			for (int i = 0; i < 20; ++i) {
-				if(isPrime(i)) {
-					Number number = Number.newBuilder().setValue(i).build();	
-					System.out.println("Streaming data to the service...");
-					requestObserver.onNext(number);
-				}
-			}
-		} catch (RuntimeException e) {
-			// Cancel RPC
-			requestObserver.onError(e);
-			throw e;
-		}
-		// Mark the end of requests
-		requestObserver.onCompleted();
-	}
+    public void shutdown() throws InterruptedException {
+        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    }
 
 
-	private boolean isPrime(int val)
-	{
-		if(val % 2 == 0) return false; 
-		try { Thread.sleep(1000); } catch(InterruptedException ex) { }
-		return true; //oczywiœcie to nieprawda ;)
-	}
+    public void test() throws InterruptedException {
+        try {
+            String line = null;
+            java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
+            do {
+                try {
+                    System.out.print("==> ");
+                    System.out.flush();
+                    line = in.readLine();
+                    if (line == null) {
+                        break;
+                    }
+                    if (line.equals("add")) {
+                        ArithmeticOpArguments request = ArithmeticOpArguments.newBuilder().setArg1(44).setArg2(55).build();
+                        ArithmeticOpResult result = calcBlockingStub.add(request);
+                        System.out.println(result.getRes());
+                    }
+                    if (line.equals("add-deadline1")) {
+                        try {
+                            ArithmeticOpArguments request = ArithmeticOpArguments.newBuilder().setArg1(44).setArg2(55).build();
+                            ArithmeticOpResult result = calcBlockingStub.withDeadlineAfter(100, TimeUnit.MILLISECONDS).add(request);
+                            System.out.println(result.getRes());
+                        } catch (io.grpc.StatusRuntimeException e) {
+                            System.out.println("DEADLINE EXCEEDED");
+                        }
+                    }
+                    if (line.equals("add-deadline2")) {
+                        try {
+                            ArithmeticOpArguments request = ArithmeticOpArguments.newBuilder().setArg1(4444).setArg2(5555).build();
+                            ArithmeticOpResult result = calcBlockingStub.withDeadlineAfter(100, TimeUnit.MILLISECONDS).add(request);
+                            System.out.println(result.getRes());
+                        } catch (io.grpc.StatusRuntimeException e) {
+                            System.out.println("DEADLINE EXCEEDED");
+                        }
+                    } else if (line.equals("complex-sum")) {
+                        ComplexArithmeticOpArguments request = ComplexArithmeticOpArguments.newBuilder()
+                                .setOptype(OperationType.SUM).addAllArgs(Arrays.asList(4.0, 5.0, 8.5))
+                                .build();
+                        ComplexArithmeticOpResult result = advCalcBlockingStub.complexOperation(request);
+                        System.out.println(result.getRes());
+                    } else if (line.equals("complex-avg")) {
+                        ComplexArithmeticOpArguments request = ComplexArithmeticOpArguments.newBuilder()
+                                .setOptype(OperationType.AVG).addAllArgs(Arrays.asList(4.0, 5.0, 8.5))
+                                .build();
+                        ComplexArithmeticOpResult result = advCalcBlockingStub.complexOperation(request);
+                        System.out.println(result.getRes());
+                    }
+                    if (line.equals("async-add")) {
+                        ArithmeticOpArguments request = ArithmeticOpArguments.newBuilder().setArg1(4444).setArg2(5555).build();
+                        StreamObserver<ArithmeticOpResult> responseObserver = new StreamObserver<ArithmeticOpResult>() {
+                            @Override
+                            public void onError(Throwable t) {
+                                System.out.println("gRPC ERROR");
+                            }
+
+                            @Override
+                            public void onCompleted() {
+                            }
+
+                            @Override
+                            public void onNext(ArithmeticOpResult res) {
+                                System.out.println(res.getRes() + " (async)");
+                            }
+                        };
+
+                        calcNonBlockingStub.add(request, responseObserver);
+                    } else if (line.equals("getprime")) {
+                        runGeneratePrimeNumbers();
+                    } else if (line.equals("countprime")) {
+                        runCountPrimeNumbers();
+                    }
+                } catch (java.io.IOException ex) {
+                    System.err.println(ex);
+                }
+            }
+            while (!line.equals("x"));
+        } finally {
+            shutdown();
+        }
+
+    }
+
+    public void runGeneratePrimeNumbers() {
+        Task request = Task.newBuilder().setMax(15).build();
+        Iterator<Number> numbers;
+        try {
+            numbers = streamTesterBlockingStub.generatePrimeNumbers(request);
+            while (numbers.hasNext()) {
+                //wypisuje siê z odstêpami czasowymi, wiêc strumieniowanie DZIA£A
+                Number num = numbers.next();
+                System.out.println("Number: " + num.getValue());
+            }
+        } catch (StatusRuntimeException ex) {
+            logger.log(Level.WARNING, "RPC failed: {0}", ex.getStatus());
+            return;
+        }
+    }
+
+    public void runCountPrimeNumbers() {
+        StreamObserver<Report> responseObserver = new StreamObserver<Report>() {
+            int count = -1;
+
+            @Override
+            public void onNext(Report result) {
+                //tylko jeden wynik
+                count = result.getCount();
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                System.out.println("RPC ERROR");
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("Result received: found " + count + " prime numbers");
+            }
+        };
+        StreamObserver<Number> requestObserver = streamTesterNonBlockingStub.countPrimeNumbers(responseObserver);
+        try {
+            for (int i = 0; i < 20; ++i) {
+                if (isPrime(i)) {
+                    Number number = Number.newBuilder().setValue(i).build();
+                    System.out.println("Streaming data to the service...");
+                    requestObserver.onNext(number);
+                }
+            }
+        } catch (RuntimeException e) {
+            // Cancel RPC
+            requestObserver.onError(e);
+            throw e;
+        }
+        // Mark the end of requests
+        requestObserver.onCompleted();
+    }
+
+
+    private boolean isPrime(int val) {
+        if (val % 2 == 0) return false;
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+        }
+        return true; //oczywiœcie to nieprawda ;)
+    }
 
 }
