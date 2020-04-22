@@ -4,18 +4,20 @@
 package sr.grpc.gen;
 
 public interface ReportOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:streaming.Report)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:streaming.Report)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int32 count = 1;</code>
-   * @return The count.
-   */
-  int getCount();
+    /**
+     * <code>int32 count = 1;</code>
+     *
+     * @return The count.
+     */
+    int getCount();
 
-  /**
-   * <code>int64 processorTime = 2;</code>
-   * @return The processorTime.
-   */
-  long getProcessorTime();
+    /**
+     * <code>int64 processorTime = 2;</code>
+     *
+     * @return The processorTime.
+     */
+    long getProcessorTime();
 }

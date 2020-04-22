@@ -4,12 +4,13 @@
 package sr.grpc.gen;
 
 public interface TaskOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:streaming.Task)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:streaming.Task)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int32 max = 1;</code>
-   * @return The max.
-   */
-  int getMax();
+    /**
+     * <code>int32 max = 1;</code>
+     *
+     * @return The max.
+     */
+    int getMax();
 }

@@ -4,18 +4,20 @@
 package sr.grpc.gen;
 
 public interface ArithmeticOpArgumentsOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:calculator.ArithmeticOpArguments)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:calculator.ArithmeticOpArguments)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int32 arg1 = 1;</code>
-   * @return The arg1.
-   */
-  int getArg1();
+    /**
+     * <code>int32 arg1 = 1;</code>
+     *
+     * @return The arg1.
+     */
+    int getArg1();
 
-  /**
-   * <code>int32 arg2 = 2;</code>
-   * @return The arg2.
-   */
-  int getArg2();
+    /**
+     * <code>int32 arg2 = 2;</code>
+     *
+     * @return The arg2.
+     */
+    int getArg2();
 }

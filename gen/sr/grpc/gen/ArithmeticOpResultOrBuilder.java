@@ -4,12 +4,13 @@
 package sr.grpc.gen;
 
 public interface ArithmeticOpResultOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:calculator.ArithmeticOpResult)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:calculator.ArithmeticOpResult)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int32 res = 1;</code>
-   * @return The res.
-   */
-  int getRes();
+    /**
+     * <code>int32 res = 1;</code>
+     *
+     * @return The res.
+     */
+    int getRes();
 }

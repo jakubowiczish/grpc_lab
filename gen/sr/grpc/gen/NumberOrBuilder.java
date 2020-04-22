@@ -4,12 +4,13 @@
 package sr.grpc.gen;
 
 public interface NumberOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:streaming.Number)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:streaming.Number)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int32 value = 1;</code>
-   * @return The value.
-   */
-  int getValue();
+    /**
+     * <code>int32 value = 1;</code>
+     *
+     * @return The value.
+     */
+    int getValue();
 }
